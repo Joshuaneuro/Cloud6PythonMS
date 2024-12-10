@@ -1,14 +1,15 @@
 from flask import Blueprint, jsonify, request
-from models import Game,games
+from models import Game
 from azure.storage.blob import BlobServiceClient
 import os
 
 routes = Blueprint('routes', __name__)
 
 # Azure Storage configuration
-AZURE_STORAGE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
-BLOB_SERVICE_CLIENT = BlobServiceClient.from_connection_string(AZURE_STORAGE_CONNECTION_STRING)
+#AZURE_STORAGE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+#BLOB_SERVICE_CLIENT = BlobServiceClient.from_connection_string(AZURE_STORAGE_CONNECTION_STRING)
 
+games = []
 #Get all Games
 @routes.route('/api/games', methods=['GET'])
 def getGames():
@@ -27,19 +28,19 @@ def addGame():
     return jsonify(new_game.__dict__)
 
 #Get Game by video id and type
-@routes.route('api/games/<videoId>/<type>', methods=['GET'])
+@routes.route('/api/games/<videoId>/<type>', methods=['GET'])
 def getGameByVideoAndType(videoId, type):
     #get video id
     return jsonify()
 
 #Update GameId
-@routes.route('api/games/<gameId>', menthods=['PUT'])
+@routes.route('/api/games/<gameId>', methods=['PUT'])
 def updateGame(gameId):
     #update game id
     return jsonify()
 
 #Delete Game by Game ID
-@routes.route('api/games/<gameId>', menthods=['DELETE'])
+@routes.route('/api/games/<gameId>', methods=['DELETE'])
 def deleteGame(gameId):
     #delete Game
     return jsonify()
