@@ -1,9 +1,3 @@
-game = []
-memorygame = []
-objectgame = []
-findobjectgame = []
-pointatpicturegame = []
-
 class Game:
     def __init__(self, id, videoId):
         self.id = id
