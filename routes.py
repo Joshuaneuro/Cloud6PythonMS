@@ -83,29 +83,13 @@ def deleteGame(gameId):
 #######################################################################
 #MEMORY GAME
 
-# Azure Table Storage Configuration
-#AZURE_TABLE_ENDPOINT = "http://127.0.0.1:10002/devstoreaccount1"
-#AZURE_ACCOUNT_NAME = "devstoreaccount1"
-#AZURE_ACCOUNT_KEY = "Eby8vdM02xNOcqGZRfpI5ysZp04XFJ3h0xDeGR/SNELmAz8tfIMJ6IRQ+FIUqCzEJ8IQ9f0z8+IHUHB4VJ/mQw=="
 TABLE_NAME = "TestTable"
-#credential = AzureNamedKeyCredential(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY)
 
-
-# Initialize TableServiceClient
-#table_service_client = TableServiceClient(
-#    endpoint=AZURE_TABLE_ENDPOINT,
-#    credential=AZURE_ACCOUNT_KEY
-#)
-CONNECTION_STRING = (
-    "DefaultEndpointsProtocol=http;"
-    "AccountName=devstoreaccount1;"
-    "AccountKey=Eby8vdM02xNOcqGZRfpI5ysZp04XFJ3h0xDeGR/SNELmAz8tfIMJ6IRQ+FIUqCzEJ8IQ9f0z8+IHUHB4VJ/mQw==;"
-    "TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;"
-)
+connectionstring = "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;"
 
 #table_service_client = TableServiceClient(endpoint=AZURE_TABLE_ENDPOINT, credential=credential)
 
-table_service_client = TableServiceClient.from_connection_string(CONNECTION_STRING)
+table_service_client = TableServiceClient.from_connection_string(connectionstring)
 
 # Ensure the table exists
 try:
