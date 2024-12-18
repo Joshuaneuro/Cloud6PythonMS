@@ -1,29 +1,39 @@
 from flask import Blueprint, jsonify, request
-from models import Game
-from azure.storage.blob import BlobServiceClient
-import os
-import json
+from models import Game, MemoryGame,ObjectGame,FindObjectGame,PointAtPictureGame
 from azure.data.tables import TableServiceClient
 from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
+import logging
 
 
 routes = Blueprint('routes', __name__)
-
-# Azure Storage configuration
-#AZURE_STORAGE_CONNECTION_STRING = "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;"
-#BLOB_SERVICE_CLIENT = BlobServiceClient.from_connection_string(AZURE_STORAGE_CONNECTION_STRING)
 
 #dummy data
 games = [
     {'id': 1, 'videoId': 100001},
     {'id': 2, 'videoId': 100002}
 ]
-#gamenew = Game(3,100003)
-#games.append(gamenew.__dict__)
+
 memorygames = []
 objectgames = []
 findobjectgames = []
 pointatpicturegames = []
+
+TABLE_NAME = "TestTable"
+
+#its fine because its global local azurite test connection string (not fine on production)
+connectionstring = "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;"
+
+#table_service_client = TableServiceClient(endpoint=AZURE_TABLE_ENDPOINT, credential=credential)
+
+table_service_client = TableServiceClient.from_connection_string(connectionstring)
+
+# Ensure the table exists
+try:
+    table_client = table_service_client.create_table(TABLE_NAME)
+    print(f"Table '{TABLE_NAME}' created.")
+except ResourceExistsError:
+    table_client = table_service_client.get_table_client(TABLE_NAME)
+    print(f"Table '{TABLE_NAME}' already exists.")
 
 #######################################################################
 #GAMES
@@ -80,30 +90,17 @@ def deleteGame(gameId):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-#######################################################################
-#MEMORY GAME
+######################################################################
 
-TABLE_NAME = "TestTable"
-
-connectionstring = "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;"
-
-#table_service_client = TableServiceClient(endpoint=AZURE_TABLE_ENDPOINT, credential=credential)
-
-table_service_client = TableServiceClient.from_connection_string(connectionstring)
-
-# Ensure the table exists
-try:
-    table_client = table_service_client.create_table(TABLE_NAME)
-    print(f"Table '{TABLE_NAME}' created.")
-except ResourceExistsError:
-    table_client = table_service_client.get_table_client(TABLE_NAME)
-    print(f"Table '{TABLE_NAME}' already exists.")
 
 @routes.route("/add", methods=["POST"])
 def add_entity():
+
     data = request.json
     partition_key = data.get("PartitionKey")
     row_key = data.get("RowKey")
+    game = Game(data.get("id"),data.get("videoId"))
+    logging.warning(game)
     properties = {k: v for k, v in data.items() if k not in ["PartitionKey", "RowKey"]}
 
     if not partition_key or not row_key:
