@@ -3,29 +3,45 @@ class Game:
         self.id = id
         self.videoId = videoId
 
-class MemoryGame:
+class MemoryGame(Game):
     def __init__(self, id, videoId, imageUrls):
-        self.id = id
-        self.videoId = videoId
-        #list
+        super().__init__(id, videoId)
         self.imageUrls = imageUrls
-
-class ObjectGame:
+    def __repr__(self):
+        return (
+            f"MemoryGame(id={self.id}, videoId={self.videoId}, "
+            f"imageUrls={self.imageUrls})"
+        )
+    
+class ObjectPlacement():
     def __init__(self,objectImageUrl, x, y):
         self.objectImageUrl = objectImageUrl
         self.x = x
         self.y = y
+    def __repr__(self):
+        return f"ObjectPlacement(objectImageUrl='{self.objectImageUrl}', x={self.x}, y={self.y})"
 
-class FindObjectGame:
-    def __init__(self, backgroundImageUrl, objects):
+class FindAllObjectsGame(Game):
+    def __init__(self,id ,videoId,backgroundImageUrl, objects):
+        super().__init__(id,videoId)
         self.backgroundImageUrl = backgroundImageUrl
         self.objects = objects
+    def __repr__(self):
+        return (
+            f"FindAllObjects(id={self.id}, videoId={self.videoId}, "
+            f"backgroundImageUrl='{self.backgroundImageUrl}', objects={self.objects})"
+        )
 
-class PointAtPictureGame:
-    def __init__(self, correctImageUrl, incorrectImageUrl, soundUrl, pointAtPictureGame):
-        self.correctImageUrl = correctImageUrl
-        #list
-        self.incorrectImageUrl = incorrectImageUrl
+class PointAtPictureGame(Game):
+    def __init__(self,gameId,videoId ,correctImageUrl, incorrectImageUrls, soundUrl, pointAtPictureGame):
+        super().__init__(gameId,videoId)
+        self.correctImageUrl = correctImageUrl        
+        self.incorrectImageUrls = incorrectImageUrls
         self.soundUrl = soundUrl
-        #self refrence
-        self.pointAtPictureGame = pointAtPictureGame
+    def __repr__(self):
+        return (
+            f"PointAtPictureGame(id={self.id}, videoId={self.videoId}, "
+            f"correctImageUrl='{self.correctImageUrl}', "
+            f"incorrectImagesUrls={self.incorrectImageUrls}, "
+            f"soundUrl='{self.soundUrl}')"
+        )
