@@ -1,6 +1,5 @@
 from flask import Flask, jsonify, request
 from routes import routes
-import os
 
 #init app
 app = Flask(__name__)
