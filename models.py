@@ -33,8 +33,8 @@ class FindAllObjectsGame(Game):
         )
 
 class PointAtPictureGame(Game):
-    def __init__(self,gameId,videoId ,correctImageUrl, incorrectImageUrls, soundUrl, pointAtPictureGame):
-        super().__init__(gameId,videoId)
+    def __init__(self,id,videoId ,correctImageUrl, incorrectImageUrls, soundUrl):
+        super().__init__(id,videoId)
         self.correctImageUrl = correctImageUrl        
         self.incorrectImageUrls = incorrectImageUrls
         self.soundUrl = soundUrl

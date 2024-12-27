@@ -13,7 +13,18 @@ routes = Blueprint('routes', __name__)
 
 connectionstring = "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;"
 
-TABLE_NAME = "TestTable"
+TABLE_NAME = "GamesTable"
+
+table_service_client = TableServiceClient.from_connection_string(conn_str=connectionstring)
+
+#Ensure the table exists
+try:
+    table_client = table_service_client.create_table(TABLE_NAME)
+    print(f"Table '{TABLE_NAME}' created.")
+except ResourceExistsError:
+    table_client = table_service_client.get_table_client(TABLE_NAME)
+    print(f"Table '{TABLE_NAME}' already exists.")
+
 
 def create_game_from_json(json_data) -> Union[MemoryGame, FindAllObjectsGame, PointAtPictureGame]:
     data = json.loads(json_data)
@@ -37,12 +48,35 @@ def create_game_from_json(json_data) -> Union[MemoryGame, FindAllObjectsGame, Po
     else:
         raise ValueError(f"Unknown game type: {type}")
 
+def create_game_from_json_output(json_data) -> Union[MemoryGame, FindAllObjectsGame, PointAtPictureGame]:
+    data = json.loads(json_data)
+    type = data.get("RowKey")
+    id = data.get("PartitionKey")
+    videoId = data.get("videoId")
+
+    if type == "MemoryGame":
+        return MemoryGame(id, videoId, data["imageUrls"])
+    elif type == "FindAllObjects":
+        objects = [ObjectPlacement(**obj) for obj in data["objects"]]
+        return FindAllObjectsGame(id, videoId, data["backgroundImageUrl"], objects)
+    elif type == "PointAtPictureGame":
+        return PointAtPictureGame(
+            id,
+            videoId,
+            data["correctImageUrl"],
+            data["incorrectImagesUrls"],
+            data["soundUrl"]
+        )
+    else:
+        raise ValueError(f"Unknown game type: {type}")
+
+
 
 # Function to transform game objects into entities for Table Storage
 def transform_to_entity(game) -> dict:
     base_entity = {
-        "PartitionKey": type(game).__name__,  # Use class name as PartitionKey
-        "RowKey": str(game.id),          # Use game_id as RowKey
+        "PartitionKey": str(game.id),  # Use class name as PartitionKey
+        "RowKey": type(game).__name__,         # Use game_id as RowKey
         "videoId": game.videoId,
     }
 
@@ -76,9 +110,6 @@ def save_to_table_storage(connectionstring: str, table_name: str, game):
     # Get the table client
     table_client = table_service.get_table_client(table_name)
     
-    # Ensure the table exists
-    #table_client.create_table_if_not_exists()
-    
     # Transform the game object into an entity
     entity = transform_to_entity(game)
     logging.warning(entity)
@@ -93,7 +124,7 @@ def delete_game_by_id(connection_string: str, table_name: str, game_id: int):
     table_client = table_service.get_table_client(table_name)
 
     # Query for the entity with the specified game_id
-    filter_query = f"id eq {game_id}"
+    filter_query = f"PartitionKey eq {game_id}"
     entities = table_client.query_entities(filter_query)
 
     # Iterate through entities to find the first match
@@ -133,20 +164,21 @@ def update_game_id(connection_string: str, table_name: str, partition_key: str, 
     table_client.upsert_entity(entity)
     print(f"Updated game_id to {new_game_id} for {partition_key} with RowKey {row_key}")
 
-def find_game_by_video_id_and_type(connection_string: str, table_name: str, video_id: int, game_type: str):
+def find_game_by_video_id_and_type(connection_string: str, table_name: str, video_id: str, game_type: str):
     table_service = TableServiceClient.from_connection_string(conn_str=connection_string)
     table_client = table_service.get_table_client(table_name)
 
-    # Query for a single game by PartitionKey (game_type) and video_id
-    filter_query = f"PartitionKey eq '{game_type}' and videoId eq {video_id}"
-    entities = table_client.query_entities(filter_query)
+    # Query for a single game by PartitionKey (video_id) and game type
 
-    logging.warning(entities)
+    # Query for the specific entity
+    query_filter = f"PartitionKey eq '{video_id}' and RowKey eq '{game_type}'"
+    entities = table_client.query_entities(query_filter)
 
-    # Return the first matching entity (if any)
+    print("entity")
     for entity in entities:
+        print(entity)
         return entity
-
+    
     return None  # If no match found
 
 #######################################################################
@@ -168,7 +200,7 @@ def addGame():
         data = request.json
         new_game = create_game_from_json(json.dumps(data))
         save_to_table_storage(connectionstring, TABLE_NAME,new_game)
-        return '', 204
+        return 'Succes', 204
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
