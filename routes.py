@@ -1,6 +1,5 @@
 from flask import Blueprint, jsonify, request
 from models import Game, MemoryGame, FindAllObjectsGame, PointAtPictureGame,ObjectPlacement
-from azure.storage.blob import BlobServiceClient
 import os
 import json
 import logging
