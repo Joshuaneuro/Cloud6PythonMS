@@ -4,13 +4,14 @@ from azure.storage.blob import BlobServiceClient
 import os
 import json
 import logging
-from typing import List,Dict,Union
+from typing import Union
 from azure.data.tables import TableServiceClient
-from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
+from azure.core.exceptions import ResourceExistsError
 
 
 routes = Blueprint('routes', __name__)
 
+#this needs to be changed locally but this is global local azurite connection string
 connectionstring = "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;"
 
 TABLE_NAME = "GamesTable"
