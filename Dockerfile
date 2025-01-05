@@ -1,5 +1,5 @@
 FROM python:3.10.7
-WORKDIR /usr/local/app
+WORKDIR /app/test
 
 # Install the application dependencies
 COPY requirements.txt ./
