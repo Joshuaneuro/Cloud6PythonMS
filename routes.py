@@ -3,9 +3,9 @@ from models import Game, MemoryGame, FindAllObjectsGame, PointAtPictureGame,Obje
 import os
 import json
 import logging
-from typing import Union
-from azure.data.tables import TableServiceClient
-from azure.core.exceptions import ResourceExistsError
+#from typing import Union
+#from azure.data.tables import TableServiceClient
+#from azure.core.exceptions import ResourceExistsError
 
 
 routes = Blueprint('routes', __name__)
