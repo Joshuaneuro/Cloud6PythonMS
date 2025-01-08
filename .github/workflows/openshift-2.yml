@@ -10,7 +10,8 @@ env:
     PORT: "5000"
 
     APP_NAME: ApiEndPointProject
-    URL: "{{ env.IMAGE_REGISTRY }}/{{ env.REGISTRY_USER}}/{{ env.MICROSERVICENAME }}:$GITHUB_SHA"
+    URL: ${{ secrets.QUAY_URL }}
+    
 
 on:
   # https://docs.github.com/en/actions/reference/events-that-trigger-workflows
