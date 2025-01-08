@@ -13,9 +13,11 @@ env:
     URL: "{{ env.IMAGE_REGISTRY }}/{{ env.REGISTRY_USER}}/{{ env.MICROSERVICENAME }}:$GITHUB_SHA"
 
 on:
+  # https://docs.github.com/en/actions/reference/events-that-trigger-workflows
+  workflow_dispatch:
   push:
-    branches:
-      - master  # Adjust this to your default branch if it's different
+    # Edit to the branch(es) you want to build and deploy on each push.
+    branches: [ "main" ]
 
 jobs:
   build:
