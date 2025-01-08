@@ -45,7 +45,7 @@ env:
 
   # 🖊️ EDIT to change the image registry settings.
   # Registries such as GHCR, Quay.io, and Docker Hub are supported.
-  IMAGE_REGISTRY: Quay.io/neurojoshua
+  IMAGE_REGISTRY: Quay.io
   IMAGE_REGISTRY_USER: ${{ secrets.QUAY_LOGIN }}
   IMAGE_REGISTRY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
 
