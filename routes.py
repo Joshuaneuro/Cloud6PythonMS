@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
-from models import Game, MemoryGame, FindAllObjectsGame, PointAtPictureGame,ObjectPlacement
+from models import MemoryGame, FindAllObjectsGame, PointAtPictureGame,ObjectPlacement
+from dotenv import load_dotenv
 import os
 import json
 import logging
@@ -12,9 +13,9 @@ routes = Blueprint('routes', __name__)
 
 #this needs to be changed locally but this is global local azurite connection string
 connectionstring = "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;"
-
+load_dotenv()
+connectionstring2 = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
 TABLE_NAME = "GamesTable"
-
 table_service_client = TableServiceClient.from_connection_string(conn_str=connectionstring)
 
 #Ensure the table exists
