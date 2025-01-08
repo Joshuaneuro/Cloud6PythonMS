@@ -10,7 +10,7 @@ env:
     PORT: "5000"
 
     APP_NAME: ApiEndPointProject
-    URL: "Quay.io/neurojoshua/games-microservice-py:$GITHUB_SHA"
+    URL: "Quay.io/536673/games-microservice-py:$GITHUB_SHA"
     
 
 on:
