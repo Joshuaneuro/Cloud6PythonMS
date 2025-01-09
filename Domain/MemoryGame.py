@@ -1,4 +1,4 @@
-from Game import Game
+from Domain.Game import Game
 
 class MemoryGame(Game):
     def __init__(self, id, videoId, imageUrls):

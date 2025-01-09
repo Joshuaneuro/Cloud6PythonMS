@@ -1,5 +1,5 @@
 from flask import Flask
-from routes import routes
+from Controllers.GamesController import routes
 
 #init app
 app = Flask(__name__)
