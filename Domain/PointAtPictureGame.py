@@ -1,4 +1,4 @@
-from Game import Game
+from Domain.Game import Game
 
 class PointAtPictureGame(Game):
     def __init__(self,id,videoId ,correctImageUrl, incorrectImageUrls, soundUrl):

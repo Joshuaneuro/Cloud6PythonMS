@@ -1,13 +1,23 @@
 # Cloud6PythonMS
+An Object Oriented Python microservices written in Flask and made for Minor Cloud Computing.
 
-# requirements.txt
-python modules required for openshift
+Connected to a Table Storage in azure.
 
-# models.py
-Models for data storage
+Automatically uploaded onto Openshift Kubernetes using Github Actions
 
-# routes.py
-functions and routes needed for the microservice
+# Requirements.txt
+Python Modules Required
 
 # main.py
 run app
+
+# To Do:
+Write error response if table already exsits
+
+Finish debugging Delete and update Codes
+
+Finish Debugging Unittests
+
+# Contributions
+Joshuaneuro : Written
+AbdelZN : reviewed
