@@ -3,90 +3,51 @@ from azure.core.exceptions import ResourceExistsError
 from dotenv import load_dotenv
 import os
 
-#load .env
-load_dotenv()
+class GameRepository:
+    def __init__(self):
+        load_dotenv()
+        self.connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+        self.table_name = "GamesTable"
+        self.table_service = TableServiceClient.from_connection_string(conn_str=self.connection_string)
+        self._table_set_up()
 
-# Get Variables from .env
-CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
-TABLE_NAME = "GamesTable"
-
-table_service = TableServiceClient.from_connection_string(conn_str=CONNECTION_STRING)
-
-# Checks to see if table exists and creates it if not True
-def table_set_up():
-    try:
-        table_service.create_table(TABLE_NAME)
-        return(f"Table '{TABLE_NAME}' created.")
-    except ResourceExistsError:
-        table_service.get_table_client(TABLE_NAME)
-        return(f"Table '{TABLE_NAME}' already exists.")
-
-
-def get_all_games():
-    table_client = table_service.get_table_client(TABLE_NAME)
-
-    # Query all entities in the table
-    entities = table_client.list_entities()
-
-    # Return a list of all entities
-    return list(entities)
-
-def save_to_table_storage(data):
-    # Create a table service client
+    def _table_set_up(self):
+        try:
+            self.table_service.create_table(self.table_name)
+            print(f"Table '{self.table_name}' created.")
+        except ResourceExistsError:
+            print(f"Table '{self.table_name}' already exists.")
     
-    # Get the table client
-    table_client = table_service.get_table_client(TABLE_NAME)
-    
-    # Transform the game object into an entity
-    entity = data
-    # Insert or update the entity in the table
-    table_client.upsert_entity(entity)
-    print(f"Saved {entity['PartitionKey']} with RowKey {entity['RowKey']} to table {TABLE_NAME}")
+    def get_all_games(self):
+        table_client = self.table_service.get_table_client(self.table_name)
+        return list(table_client.list_entities())
 
-def delete_game_by_id(game_id: int):
+    def save_to_table_storage(self, data):
+        table_client = self.table_service.get_table_client(self.table_name)
+        table_client.upsert_entity(data)
+        print(f"Saved {data['PartitionKey']} with RowKey {data['RowKey']} to table {self.table_name}")
 
-    # Create the table service client
-    table_client = table_service.get_table_client(TABLE_NAME)
+    def delete_game_by_id(self, game_id: int):
+        table_client = self.table_service.get_table_client(self.table_name)
+        filter_query = f"PartitionKey eq {game_id}"
+        entities = table_client.query_entities(filter_query)
+        for entity in entities:
+            table_client.delete_entity(partition_key=entity["PartitionKey"], row_key=entity["RowKey"])
+            print(f"Deleted game with id={game_id} from table {self.table_name}.")
+            return
+        print(f"No game found with id={game_id} in table {self.table_name}.")
 
-    # Query for the entity with the specified game_id
-    filter_query = f"PartitionKey eq {game_id}"
-    entities = table_client.query_entities(filter_query)
+    def find_game_by_video_id_and_type(self, video_id: str, game_type: str):
+        table_client = self.table_service.get_table_client(self.table_name)
+        query_filter = f"PartitionKey eq '{video_id}' and RowKey eq '{game_type}'"
+        entities = table_client.query_entities(query_filter)
+        for entity in entities:
+            return entity
+        return None
 
-    # Iterate through entities to find the first match
-    for entity in entities:
-        partition_key = entity["PartitionKey"]
-        row_key = entity["RowKey"]
-        
-        # Delete the entity
-        table_client.delete_entity(partition_key=partition_key, row_key=row_key)
-        print(f"Deleted game with id={game_id} from table {TABLE_NAME}.")
-        return  # Exit after deleting the first match
-
-    print(f"No game found with id={game_id} in table {TABLE_NAME}.")
-
-def find_game_by_video_id_and_type(video_id: str, game_type: str):
-    table_client = table_service.get_table_client(TABLE_NAME)
-
-    # Query for the specific entity
-    query_filter = f"PartitionKey eq '{video_id}' and RowKey eq '{game_type}'"
-    entities = table_client.query_entities(query_filter)
-
-    print("entity")
-    for entity in entities:
-        print(entity)
-        return entity
-    
-    return None  # If no match found
-
-def update_game_id(partition_key: str, row_key: str, new_game_id: int):
-    table_client = table_service.get_table_client(TABLE_NAME)
-
-    # Retrieve the entity
-    entity = table_client.get_entity(partition_key=partition_key, row_key=row_key)
-    
-    # Update the `game_id` field
-    entity["game_id"] = new_game_id
-    
-    # Upsert (update or insert) the entity back to the table
-    table_client.upsert_entity(entity)
-    print(f"Updated game_id to {new_game_id} for {partition_key} with RowKey {row_key}")
+    def update_game_id(self, partition_key: str, row_key: str, new_game_id: int):
+        table_client = self.table_service.get_table_client(self.table_name)
+        entity = table_client.get_entity(partition_key=partition_key, row_key=row_key)
+        entity["game_id"] = new_game_id
+        table_client.upsert_entity(entity)
+        print(f"Updated game_id to {new_game_id} for {partition_key} with RowKey {row_key}")
