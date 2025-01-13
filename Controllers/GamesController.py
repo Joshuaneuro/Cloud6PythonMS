@@ -1,56 +1,47 @@
 from flask import Blueprint, jsonify, request
-from Services import GamesService
-
+from Services import GameService
 
 routes = Blueprint('GamesController', __name__)
+service = GameService()
 
-#Get all Games
 @routes.route('/api/games', methods=['GET'])
 def get_all_games():
     try:
-        games = GamesService.get_all_games()
+        games = service.get_all_games()
         return jsonify(games)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-#Post new Game
 @routes.route('/api/games', methods=['POST'])
 def save_to_table_storage():
     try:
         data = request.json
-        data = GamesService.save_to_table_storage(data)
-        return 'succes', 204
+        service.save_to_table_storage(data)
+        return 'success', 204
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
 
-#Get Game by video id and type
 @routes.route('/api/games/<videoId>/<type>', methods=['GET'])
 def find_game_by_video_id_and_type(videoId, type):
-    #get video id
     try:
-        game = GamesService.find_game_by_video_id_and_type(videoId, type)
+        game = service.find_game_by_video_id_and_type(videoId, type)
         return jsonify(game)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-#Update GameId
-@routes.route('/api/games/<gameId>', methods=['PUT'])
-def update_game_id(gameId):
-    #update game id
-    newId = request.json()
+@routes.route('/api/games/<partitionKey>/<rowKey>', methods=['PUT'])
+def update_game_id(partitionKey, rowKey):
     try:
-        game = GamesService.update_game_id(gameId,gameId,newId)
-        return jsonify(game)
+        new_id = request.json.get("newId")
+        service.update_game_id(partitionKey, rowKey, new_id)
+        return 'success', 204
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-#Delete Game by Game ID
 @routes.route('/api/games/<gameId>', methods=['DELETE'])
 def delete_game_by_id(gameId):
-    #delete Game
     try:
-        game = GamesService.delete_game_by_id(gameId)
-        return jsonify(game)
+        service.delete_game_by_id(gameId)
+        return 'success', 204
     except Exception as e:
         return jsonify({"error": str(e)}), 500
