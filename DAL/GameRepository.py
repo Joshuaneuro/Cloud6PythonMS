@@ -5,7 +5,7 @@ import os
 
 class GameRepository:
     def __init__(self):
-        load_dotenv()
+        # load_dotenv()
         self.connection_string = os.getenv("AZURE_TABLE_CONNECTION_STRING")
         if not self.connection_string:
             raise ValueError("Environment variable 'AZURE_TABLE_CONNECTION_STRING' is not set or is empty.")
