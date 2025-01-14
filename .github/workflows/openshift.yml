@@ -11,13 +11,10 @@ env:
 
     APP_NAME: ApiEndPointProject
     URL: "quay.io/536673/games-microservice-py:$GITHUB_SHA"
-    
 
 on:
-  # https://docs.github.com/en/actions/reference/events-that-trigger-workflows
   workflow_dispatch:
   push:
-    # Edit to the branch(es) you want to build and deploy on each push.
     branches: [ "main" ]
 
 jobs:
@@ -25,27 +22,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout your code
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Step 2: Set up Docker Buildx (needed for multi-platform builds)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      # Step 3: Install OpenShift CLI (oc)
       - name: Install OpenShift CLI
         run: |
           curl -Lo oc.tar.gz https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz
           tar -xvzf oc.tar.gz
           sudo mv oc /usr/local/bin/
 
-      # Step 4: Log in to OpenShift
       - name: Log in to OpenShift
         run: |
           echo "${{ secrets.OPENSHIFT_TOKEN }}" | oc login --token=$(cat) --server="${{ secrets.OPENSHIFT_SERVER }}"
 
-      # Step 5: Log in to Quay (Make sure to specify quay.io registry)
       - name: Log in to Quay
         uses: docker/login-action@v2
         with:
@@ -53,17 +45,14 @@ jobs:
           password: ${{ secrets.QUAY_PASSWORD }}
           registry: quay.io
 
-      # Step 6: Build Docker image
       - name: Build Docker image
         run: |
           docker build -t ${{ env.URL}} .
 
-      # Step 7: Push Docker image to Quay
       - name: Push Docker image
         run: |
           docker push ${{ env.URL}}
 
-      # Step 8: Check if deployment exists and create if missing
       - name: Check if deployment exists and create if missing
         run: |
           if ! oc get deployment ${{ env.MICROSERVICENAME }}; then
@@ -80,13 +69,15 @@ jobs:
             echo "Service already exists."
           fi
 
-      # Step 9: Update image in the deployment
+      - name: Set environment variable for the deployment using the secret
+        run: |
+          oc set env deployment/${{ env.MICROSERVICENAME }} AZURE_TABLE_CONNECTION_STRING='$(oc get secret azure-connection-secret -o jsonpath="{.data.AZURE_TABLE_CONNECTION_STRING}" | base64 --decode)'
+
       - name: Update image in the deployment
         run: |
           oc set image deployment/${{ env.MICROSERVICENAME }} ${{ env.MICROSERVICENAME }}=${{ env.URL }}
 
-      # Step 10: Wait for deployment rollout to finish
-      - name: Wait for deployment rollout with retries
+      - name: Wait for deployment rollout to finish
         run: |
           for i in {1..3}; do
             oc rollout status deployment/${{ env.MICROSERVICENAME }}&& break || sleep 30

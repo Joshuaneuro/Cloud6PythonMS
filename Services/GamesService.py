@@ -1,12 +1,12 @@
 import json
 from typing import Union
-from DAL import GameRepository
+from DAL.GameRepository import GameRepository
 from Domain.FindAllObjectsGame import FindAllObjectsGame
 from Domain.MemoryGame import MemoryGame
 from Domain.PointAtPictureGame import PointAtPictureGame
 from Domain.ObjectPlacement import ObjectPlacement
 
-class GameService:
+class GamesService:
     def __init__(self):
         self.repository = GameRepository()
 
