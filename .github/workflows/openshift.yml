@@ -4,11 +4,8 @@ env:
     IMAGE_REGISTRY: quay.io
     IMAGE_REGISTRY_USER: ${{ secrets.QUAY_LOGIN }}
     IMAGE_REGISTRY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
-
     MICROSERVICENAME: games-microservice-py
-
     PORT: "5000"
-
     APP_NAME: ApiEndPointProject
     URL: "quay.io/536673/games-microservice-py:$GITHUB_SHA"
 
@@ -69,9 +66,9 @@ jobs:
             echo "Service already exists."
           fi
 
-      - name: Set environment variable for the deployment using the secret
+      - name: Link ConfigMap to the deployment
         run: |
-          oc set env deployment/${{ env.MICROSERVICENAME }} AZURE_TABLE_CONNECTION_STRING="DefaultEndpointsProtocol=https;AccountName=gamesmsstorage1;AccountKey=gnpqEC5FLqiA+nJ/KH8xdMIXpm65Ioaxcx/vY+hzDKukoiApPvjitcR/lxdMUwJlBnT6ovq9cNzW+AStr6OWZg==;EndpointSuffix=core.windows.net"
+          oc set env deployment/${{ env.MICROSERVICENAME }} --from=configmap/azure-config
 
       - name: Update image in the deployment
         run: |
