@@ -71,7 +71,7 @@ jobs:
 
       - name: Set environment variable for the deployment using the secret
         run: |
-          oc set env deployment/${{ env.MICROSERVICENAME }} AZURE_TABLE_CONNECTION_STRING='$(oc get secret azure-connection-secret -o jsonpath="{.data.AZURE_TABLE_CONNECTION_STRING}" | base64 --decode)'
+          oc set env deployment/${{ env.MICROSERVICENAME }} AZURE_TABLE_CONNECTION_STRING="DefaultEndpointsProtocol=https;AccountName=gamesmsstorage1;AccountKey=gnpqEC5FLqiA+nJ/KH8xdMIXpm65Ioaxcx/vY+hzDKukoiApPvjitcR/lxdMUwJlBnT6ovq9cNzW+AStr6OWZg==;EndpointSuffix=core.windows.net"
 
       - name: Update image in the deployment
         run: |
