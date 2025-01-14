@@ -57,7 +57,7 @@ jobs:
         run: |
           if ! oc get deployment ${{ env.MICROSERVICENAME }}; then
             echo "Deployment not found. Creating deployment..."
-            oc create deployment ${{ env.MICROSERVICENAME }} --image=${{ env.URL}}
+            oc create deployment ${{ env.MICROSERVICENAME }} --image=${{ env.URL}} --replicas=1
           else
             echo "Deployment exists."
           fi
