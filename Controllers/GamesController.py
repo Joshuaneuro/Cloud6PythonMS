@@ -1,8 +1,8 @@
 from flask import Blueprint, jsonify, request
-from Services import GameService
+from Services.GamesService import GamesService
 
 routes = Blueprint('GamesController', __name__)
-service = GameService()
+service = GamesService()
 
 @routes.route('/api/games', methods=['GET'])
 def get_all_games():

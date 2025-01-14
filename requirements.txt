@@ -1,2 +1,4 @@
 flask
 load_dotenv
+gunicorn==20.1.0
+azure-data-tables

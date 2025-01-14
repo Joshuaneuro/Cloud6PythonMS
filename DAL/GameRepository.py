@@ -6,9 +6,11 @@ import os
 class GameRepository:
     def __init__(self):
         load_dotenv()
-        self.connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
-        self.table_name = "GamesTable"
+        self.connection_string = os.getenv("AZURE_TABLE_CONNECTION_STRING")
+        if not self.connection_string:
+            raise ValueError("Environment variable 'AZURE_TABLE_CONNECTION_STRING' is not set or is empty.")
         self.table_service = TableServiceClient.from_connection_string(conn_str=self.connection_string)
+        self.table_name = "GamesTable"
         self._table_set_up()
 
     def _table_set_up(self):
