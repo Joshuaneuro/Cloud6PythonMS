@@ -5,8 +5,9 @@ import os
 
 class GameRepository:
     def __init__(self):
-        # load_dotenv()
+        # load_dotenv()  # Commented out since it’s not required in a container environment
         self.connection_string = os.getenv("AZURE_TABLE_CONNECTION_STRING")
+        print(f"Connection string: {self.connection_string}")  # Debug print
         if not self.connection_string:
             raise ValueError("Environment variable 'AZURE_TABLE_CONNECTION_STRING' is not set or is empty.")
         self.table_service = TableServiceClient.from_connection_string(conn_str=self.connection_string)
