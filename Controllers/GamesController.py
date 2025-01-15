@@ -1,47 +1,88 @@
 from flask import Blueprint, jsonify, request
 from Services.GamesService import GamesService
+import logging
 
-routes = Blueprint('GamesController', __name__)
-service = GamesService()
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
-@routes.route('/api/games', methods=['GET'])
-def get_all_games():
-    try:
-        games = service.get_all_games()
-        return jsonify(games)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+class GamesController:
+    def __init__(self, service=None):
+        self.service = service or GamesService()
+        self.routes = Blueprint('games_controller', __name__)
+        self._register_routes()
 
-@routes.route('/api/games', methods=['POST'])
-def save_to_table_storage():
-    try:
-        data = request.json
-        service.save_to_table_storage(data)
-        return 'success', 204
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    def _register_routes(self):
+        @self.routes.route('/api/games', methods=['GET'])
+        def get_all_games():
+            return self.get_all_games()
 
-@routes.route('/api/games/<videoId>/<type>', methods=['GET'])
-def find_game_by_video_id_and_type(videoId, type):
-    try:
-        game = service.find_game_by_video_id_and_type(videoId, type)
-        return jsonify(game)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        @self.routes.route('/api/games', methods=['POST'])
+        def save_to_table_storage():
+            return self.save_to_table_storage()
 
-@routes.route('/api/games/<partitionKey>/<rowKey>', methods=['PUT'])
-def update_game_id(partitionKey, rowKey):
-    try:
-        new_id = request.json.get("newId")
-        service.update_game_id(partitionKey, rowKey, new_id)
-        return 'success', 204
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        @self.routes.route('/api/games/<string:video_id>/<string:game_type>', methods=['GET'])
+        def find_game_by_video_id_and_type(video_id, game_type):
+            return self.find_game_by_video_id_and_type(video_id, game_type)
 
-@routes.route('/api/games/<gameId>', methods=['DELETE'])
-def delete_game_by_id(gameId):
-    try:
-        service.delete_game_by_id(gameId)
-        return 'success', 204
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        @self.routes.route('/api/games/<string:partition_key>/<string:row_key>', methods=['PUT'])
+        def update_game_id(partition_key, row_key):
+            return self.update_game_id(partition_key, row_key)
+
+        @self.routes.route('/api/games/<string:game_id>', methods=['DELETE'])
+        def delete_game_by_id(game_id):
+            return self.delete_game_by_id(game_id)
+
+    def get_all_games(self):
+        try:
+            games = self.service.get_all_games()
+            return jsonify({"games": games}), 200
+        except Exception as e:
+            logging.error(f"Error retrieving games: {str(e)}")
+            return jsonify({"error": "Failed to retrieve games"}), 500
+
+    def save_to_table_storage(self):
+        try:
+            data = request.json
+            if not data:
+                return jsonify({"error": "Invalid request data"}), 400
+            self.service.save_to_table_storage(data)
+            return jsonify({"message": "Game saved successfully"}), 201
+        except ValueError as ve:
+            logging.warning(f"Validation error: {str(ve)}")
+            return jsonify({"error": str(ve)}), 400
+        except Exception as e:
+            logging.error(f"Error saving game: {str(e)}")
+            return jsonify({"error": "Failed to save game"}), 500
+
+    def find_game_by_video_id_and_type(self, video_id, game_type):
+        try:
+            game = self.service.find_game_by_video_id_and_type(video_id, game_type)
+            if not game:
+                return jsonify({"error": "Game not found"}), 404
+            return jsonify({"game": game}), 200
+        except Exception as e:
+            logging.error(f"Error finding game: {str(e)}")
+            return jsonify({"error": "Failed to find game"}), 500
+
+    def update_game_id(self, partition_key, row_key):
+        try:
+            data = request.json
+            new_id = data.get("new_id")
+            if not new_id:
+                return jsonify({"error": "Missing new_id in request"}), 400
+            self.service.update_game_id(partition_key, row_key, new_id)
+            return jsonify({"message": "Game ID updated successfully"}), 200
+        except ValueError as ve:
+            logging.warning(f"Validation error: {str(ve)}")
+            return jsonify({"error": str(ve)}), 400
+        except Exception as e:
+            logging.error(f"Error updating game ID: {str(e)}")
+            return jsonify({"error": "Failed to update game ID"}), 500
+
+    def delete_game_by_id(self, game_id):
+        try:
+            self.service.delete_game_by_id(game_id)
+            return jsonify({"message": "Game deleted successfully"}), 200
+        except Exception as e:
+            logging.error(f"Error deleting game: {str(e)}")
+            return jsonify({"error": "Failed to delete game"}), 500

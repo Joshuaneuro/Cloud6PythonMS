@@ -4,8 +4,9 @@ from Controllers.GamesController import routes
 #init app
 app = Flask(__name__)
 
-#register routes
-app.register_blueprint(routes)
+# Initialize and register the controller
+games_controller = GamesController()
+app.register_blueprint(games_controller.routes)
 
 #run server
 if __name__ == '__main__':
