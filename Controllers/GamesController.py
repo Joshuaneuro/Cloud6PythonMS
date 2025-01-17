@@ -17,12 +17,16 @@ class GamesController:
             return self.get_all_games()
 
         @self.routes.route('/api/games', methods=['POST'])
-        def save_to_table_storage():
-            return self.save_to_table_storage()
+        def create_game():
+            return self.create_game()
 
         @self.routes.route('/api/games/<string:video_id>/<string:game_type>', methods=['GET'])
         def find_game_by_video_id_and_type(video_id, game_type):
             return self.find_game_by_video_id_and_type(video_id, game_type)
+
+        @self.routes.route('/api/games/<string:video_id>/<string:game_type>', methods=['PATCH'])
+        def update_game(video_id, game_type):
+            return self.update_game(video_id, game_type)
 
         @self.routes.route('/api/games/<string:partition_key>/<string:row_key>', methods=['PUT'])
         def update_game_id(partition_key, row_key):
@@ -34,35 +38,76 @@ class GamesController:
 
     def get_all_games(self):
         try:
-            games = self.service.get_all_games()
-            return jsonify({"games": games}), 200
+            # Get query parameters
+            page = request.args.get('page', default=1, type=int)
+            page_size = request.args.get('pageSize', default=10, type=int)
+            video_id = request.args.get('videoId', default=None, type=str)
+            game_type = request.args.get('gameType', default=None, type=str)
+
+            # Call service layer with the parameters
+            games, total_count = self.service.get_all_games(page, page_size, video_id, game_type)
+
+            # Return paginated response
+            return jsonify({
+                "games": games,
+                "totalRecords": total_count,
+                "page": page,
+                "pageSize": page_size
+            }), 200
         except Exception as e:
             logging.error(f"Error retrieving games: {str(e)}")
             return jsonify({"error": "Failed to retrieve games"}), 500
 
-    def save_to_table_storage(self):
+    def create_game(self):
         try:
-            data = request.json
-            if not data:
-                return jsonify({"error": "Invalid request data"}), 400
-            self.service.save_to_table_storage(data)
-            return jsonify({"message": "Game saved successfully"}), 201
+            data = request.form.to_dict()
+            file = request.files.get('file')
+            if not data or not file:
+                return jsonify({"error": "Metadata and file are required"}), 400
+
+            # Call the service to create the game
+            self.service.create_game(data, file)
+            return jsonify({"message": "Game created successfully"}), 201
         except ValueError as ve:
             logging.warning(f"Validation error: {str(ve)}")
             return jsonify({"error": str(ve)}), 400
         except Exception as e:
-            logging.error(f"Error saving game: {str(e)}")
-            return jsonify({"error": "Failed to save game"}), 500
+            logging.error(f"Error creating game: {str(e)}")
+            return jsonify({"error": "Failed to create game"}), 500
 
     def find_game_by_video_id_and_type(self, video_id, game_type):
         try:
+            if not video_id or not game_type:
+                logging.warning("Invalid video_id or game_type")
+                return jsonify({"error": "Invalid video_id or game_type"}), 400
             game = self.service.find_game_by_video_id_and_type(video_id, game_type)
             if not game:
                 return jsonify({"error": "Game not found"}), 404
             return jsonify({"game": game}), 200
+        except ValueError as ve:
+            logging.warning(f"Validation error: {str(ve)}")
+            return jsonify({"error": str(ve)}), 400
         except Exception as e:
             logging.error(f"Error finding game: {str(e)}")
             return jsonify({"error": "Failed to find game"}), 500
+
+    def update_game(self, video_id, game_type):
+        try:
+            data = request.form.to_dict()
+            file = request.files.get('file')  # Get the optional file from the request
+
+            if not data and not file:
+                return jsonify({"error": "No data or file provided for update"}), 400
+
+            # Call the service to handle the update
+            self.service.update_game(video_id, game_type, data, file)
+            return jsonify({"message": "Game updated successfully"}), 200
+        except ValueError as ve:
+            logging.warning(f"Validation error: {str(ve)}")
+            return jsonify({"error": str(ve)}), 400
+        except Exception as e:
+            logging.error(f"Error updating game: {str(e)}")
+            return jsonify({"error": "Failed to update game"}), 500
 
     def update_game_id(self, partition_key, row_key):
         try:
@@ -81,8 +126,14 @@ class GamesController:
 
     def delete_game_by_id(self, game_id):
         try:
+            if not game_id:
+                logging.warning("Missing game_id in request")
+                return jsonify({"error": "Missing game_id in request"}), 400
             self.service.delete_game_by_id(game_id)
             return jsonify({"message": "Game deleted successfully"}), 200
+        except ValueError as ve:
+            logging.warning(f"Validation error: {str(ve)}")
+            return jsonify({"error": str(ve)}), 400
         except Exception as e:
             logging.error(f"Error deleting game: {str(e)}")
             return jsonify({"error": "Failed to delete game"}), 500
