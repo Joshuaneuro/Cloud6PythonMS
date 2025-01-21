@@ -61,6 +61,15 @@ class GameRepository:
             logging.error(f"Failed to upload file to blob storage: {str(e)}")
             raise
     
+    def save_to_table_storage(self, data):
+        try:
+            table_client = self.table_service.get_table_client(self.table_name)
+            table_client.upsert_entity(data)
+            logging.info(f"Saved {data['PartitionKey']} with RowKey {data['RowKey']} to table {self.table_name}")
+        except AzureError as e:
+            logging.error(f"Failed to save entity to table storage: {str(e)}")
+            raise
+    
     def get_all_games(self, offset: int, page_size: int, video_id: str = None, game_type: str = None):
         table_client = self.table_service.get_table_client(self.table_name)
         query_filter = []
@@ -90,16 +99,6 @@ class GameRepository:
             raise
         finally:
             table_client.close()
-
-
-    def save_to_table_storage(self, data):
-        try:
-            table_client = self.table_service.get_table_client(self.table_name)
-            table_client.upsert_entity(data)
-            logging.info(f"Saved {data['PartitionKey']} with RowKey {data['RowKey']} to table {self.table_name}")
-        except AzureError as e:
-            logging.error(f"Failed to save entity to table storage: {str(e)}")
-            raise
 
     def delete_game_by_id(self, game_id: int):
         table_client = self.table_service.get_table_client(self.table_name)

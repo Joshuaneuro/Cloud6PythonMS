@@ -9,6 +9,10 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Turns off buffering for easier container logging
 ENV PYTHONUNBUFFERED=1
 
+# Set environment variables (if these values are static)
+ENV AZURE_TABLE_CONNECTION_STRING=<your_connection_string>
+ENV AZURE_BLOB_CONNECTION_STRING=<your_blob_connection_string>
+
 # Install pip requirements
 COPY requirements.txt .
 RUN python -m pip install -r requirements.txt

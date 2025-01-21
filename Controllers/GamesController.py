@@ -60,13 +60,21 @@ class GamesController:
 
     def create_game(self):
         try:
-            data = request.form.to_dict()
-            file = request.files.get('file')
-            if not data or not file:
-                return jsonify({"error": "Metadata and file are required"}), 400
+            # Parse metadata from the form data
+            metadata = json.loads(request.form.get('metadata', '{}'))
+            if not metadata:
+                return jsonify({"error": "Metadata is required"}), 400
+
+            # Collect all files dynamically
+            files = {key: request.files.get(key) for key in request.files.keys()}
+
+            # Validate metadata and files
+            if not files:
+                return jsonify({"error": "At least one file is required"}), 400
 
             # Call the service to create the game
-            self.service.create_game(data, file)
+            self.service.create_game(metadata, files)
+
             return jsonify({"message": "Game created successfully"}), 201
         except ValueError as ve:
             logging.warning(f"Validation error: {str(ve)}")
@@ -74,6 +82,7 @@ class GamesController:
         except Exception as e:
             logging.error(f"Error creating game: {str(e)}")
             return jsonify({"error": "Failed to create game"}), 500
+
 
     def find_game_by_video_id_and_type(self, video_id, game_type):
         try:
