@@ -12,11 +12,7 @@ Python Modules Required
 run app
 
 # To Do:
-Write error response if table already exsits
 
-Finish debugging Delete and update Codes
-
-Finish Debugging Unittests
 
 # Contributions
 Joshuaneuro : Written
